@@ -33,9 +33,18 @@ gen_max_grad_norm = 5.0
 # log
 ###############################################
 
-logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
-                    datefmt='%m/%d/%y %H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
+    datefmt="%d-%m-%Y %H:%M:%S",
+    handlers=[
+        logging.FileHandler(
+            filename=os.path.join(log_dir, "gen_run.log"),
+            mode="w",
+            encoding="utf-8"
+        )
+    ]
+)
 logger = logging.getLogger(__name__)
 
 logger.info(f'begin gen progress ...')

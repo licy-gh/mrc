@@ -18,7 +18,7 @@ from opn.main import prediction_model as opn_answer
 
 app = Flask(__name__)  # Flask web服务包装
 Swagger(app)  # swagger页面包装
-
+curr_path = os.path.dirname(__file__)
 # 日志设置，同时输出到终端和文件
 logging.root.handlers = []
 logging.basicConfig(
@@ -27,7 +27,7 @@ logging.basicConfig(
     datefmt="%d-%m-%Y %H:%M:%S",
     handlers=[
         logging.FileHandler(
-            filename="MRC_integrated.log",
+            filename=os.path.join(curr_path, "MRC_integrated.log"),
             mode="w",
             encoding="utf-8"
         ),
@@ -35,8 +35,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("Chinese MRC")
-
-curr_path = os.path.dirname(__file__)
 # gen
 gen = GenAnswer()
 
@@ -123,6 +121,7 @@ def main():
     query = request.form.get('query')
     doc = request.form.get('doc')
     flag = request.form.get('flag', default='ext')
+    flag = flag if flag else 'ext'
     # 接收body-raw的json传入参数
     # content = request.get_data()
     receive_info = {

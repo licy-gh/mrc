@@ -9,6 +9,7 @@ from bojone_snippets import AutoRegressiveDecoder, sequence_padding
 from bojone_tokenizers import load_vocab, Tokenizer
 from config import *
 from model_unilm import BojoneModel
+from optimizer import create_optimizer_and_scheduler
 
 
 class ReadingComprehension(AutoRegressiveDecoder):
@@ -119,49 +120,39 @@ class ReadingComprehension(AutoRegressiveDecoder):
 
 
 class GenAnswer:
-    def __init__(self):
-        self.token_dict, self.keep_tokens = load_vocab(
-            dict_path=dict_path,
-            simplified=True,
-            startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'],
-        )
+    def __init__(self, train_flag=False):
+        self.token_dict, self.keep_tokens = load_vocab(dict_path=dict_path, simplified=True,
+                                                       startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'], )
         self.tokenizer = Tokenizer(self.token_dict, do_lower_case=True)
-        self.config = AutoConfig.from_pretrained(
-            pretrained_model_name_or_path=config_path,
-            keep_tokens=self.keep_tokens,
-            vocab_size=len(self.keep_tokens)
-        )
-        self.model = BojoneModel(self.config)
-        if hasattr(self.model, "module"):
-            self.model.module.load_state_dict(
-                torch.load(
-                    save_model_path,
-                    map_location="cpu"
-                ),
-                strict=False
-            )
-        else:
-            self.model.load_state_dict(
-                torch.load(
-                    save_model_path,
-                    map_location="cpu"
-                ),
-                strict=False
-            )
+        self.config = AutoConfig.from_pretrained(pretrained_model_name_or_path=config_path,
+                                                 keep_tokens=self.keep_tokens, vocab_size=len(self.keep_tokens))
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model.to(self.device)
-        if torch.cuda.device_count() > 1:
-            self.model = nn.DataParallel(self.model)
-        self.reader = ReadingComprehension(
-            start_id=None,
-            end_id=self.tokenizer._token_end_id,
-            maxlen=gen_max_a_len,
-            keep_tokens=self.keep_tokens,
-            tokenizer=self.tokenizer,
-            config=self.config,
-            model=self.model,
-            mode='generative'
-        )
+        self.model = None
+        self.optimizer = None
+        self.scheduler = None
+        self.train_generator = None
+        self.reader = None
+        if train_flag:
+            pass
+        else:
+            self.model = BojoneModel(self.config)
+            if hasattr(self.model, "module"):
+                self.model.module.load_state_dict(torch.load(save_model_path, map_location="cpu"), strict=False)
+            else:
+                self.model.load_state_dict(torch.load(save_model_path, map_location="cpu"), strict=False)
+            self.model.to(self.device)
+            if torch.cuda.device_count() > 1:
+                self.model = nn.DataParallel(self.model)
+            self.reader = ReadingComprehension(
+                start_id=None,
+                end_id=self.tokenizer._token_end_id,
+                maxlen=gen_max_a_len,
+                keep_tokens=self.keep_tokens,
+                tokenizer=self.tokenizer,
+                config=self.config,
+                model=self.model,
+                mode='generative'
+            )
 
     def answer(self, question, passage):
         return self.reader.answer(question, [passage])
