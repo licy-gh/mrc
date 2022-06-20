@@ -7,6 +7,22 @@ python >= 3.8：
 pip install -r requirements.txt
 ```
 
+**注：**[huggingface/transformers@`f5af873`](https://github.com/huggingface/transformers/commit/f5af87361718be29a1d3ddb2d8ef23f85b1c70c3) 修改了docstrings接口。
+
+```diff
+@add_code_sample_docstrings(
+-    tokenizer_class=_TOKENIZER_FOR_DOC,
++    processor_class=_TOKENIZER_FOR_DOC,
+     checkpoint=_CHECKPOINT_FOR_DOC,
+     output_type=TFSequenceClassifierOutput,
+     config_class=_CONFIG_FOR_DOC,
+```
+
+如果 `transformers >= 4.12` 会出现报错： `TypeError: add_code_sample_docstrings() got an unexpected keyword argument 'tokenizer_class'`。有两种解决方法：
+
+1. 将transformers版本回滚至4.11之前
+2. 将代码中的 `tokenizer_class` 重命名为 `processor_class`
+
 ## 运行
 
 ### 部署服务
