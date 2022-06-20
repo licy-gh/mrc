@@ -139,7 +139,7 @@ def train_and_eval():
                 logger.info(f"epoch: {e} - step: {step + 1} - loss: {loss}")
 
         # evaluation
-        final = sum(list(eval_valid_data(tmp_valid_data=valid_data[:1000], gen=gen, enum=epochs, show_case=5)))
+        final = sum(list(eval_valid_data(tmp_valid_data=valid_data[:1000], gen=gen, enum=e, show_case=5)))
         if final > best_final:
             best_final = final
 
